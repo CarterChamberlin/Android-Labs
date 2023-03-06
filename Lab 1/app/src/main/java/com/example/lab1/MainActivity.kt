@@ -3,8 +3,10 @@ package com.example.lab1
 import android.os.Bundle
 import android.widget.RadioButton
 import android.widget.Space
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
@@ -25,6 +28,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -48,13 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lab1.ui.theme.Lab1Theme
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
-
-var fatRange = ""
-var color = 0
-var height = 0
-var waist = 0
-var gender = 0
-var fatMass = 0
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,12 +65,14 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                 }
-
+                var height: Float = 0F
+                var waist: Float = 0F
+                var gender: Int = 0
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(20.dp),
-                    //verticalArrangement = Arrangement.Center,
+                    verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
@@ -83,7 +83,6 @@ class MainActivity : ComponentActivity() {
                     waist = SizeSlider(measurement = "Waist")
                     Spacer(modifier = Modifier.height(20.dp))
                     gender = GenderSelect()
-
                 }
                 Column(
                     modifier = Modifier
@@ -92,15 +91,7 @@ class MainActivity : ComponentActivity() {
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            //count++
-
-                        }
-                    ) {
-                        Text(text = "Calculate RFM")
-                        DisplayCard()
-                    }
+                    DisplayRFM(height = height, waist = waist, gender = gender)
                 }
             }
         }
@@ -118,7 +109,7 @@ fun TitleText() {
 }
 
 @Composable
-fun SizeSlider(measurement: String): Int {
+fun SizeSlider(measurement: String): Float {
     var sliderPosition by remember { mutableStateOf(50f) }
     Slider(
         modifier = Modifier.semantics { contentDescription = "Localized Description" },
@@ -128,9 +119,9 @@ fun SizeSlider(measurement: String): Int {
         onValueChangeFinished = {
         },
         )
-    var stepInt = (sliderPosition).toInt()
-    Text(text = "$measurement: $stepInt inches")
-    return stepInt
+    var stepInt = sliderPosition.toInt()
+    Text(text = "$measurement: ${stepInt.toInt()} inches")
+    return sliderPosition
 }
 object Gender {
     const val male = "Male"
@@ -171,57 +162,59 @@ fun GenderSelect(): Int {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun calculateRFM() {
-    //var fatMass = 0
-    //var fatRange = ""
-    //var color = 0
+fun DisplayRFM(height: Float, waist: Float, gender: Int) {
+    val ctx = LocalContext.current
+    var fatMass: Float
+    var fatRange = ""
+    var color = 0
+    ExtendedFloatingActionButton(
+        onClick = {
+            fatMass = (64 - (20 * (height / waist)) + (12 * gender))
 
-    fatMass = (64 - (20 * (height / waist)) + (12 * gender))
-
-    if (gender == 0) { // Male
-        if (fatMass < 9) {
-            fatRange = "Underfat"
-            color = 1 // Blue
-        }
-        else if ((fatMass >= 9) && (fatMass < 19)) {
-            fatRange = "Healthy"
-            color = 2 // Green
-        }
-        else if ((fatMass >= 19) && (fatMass < 25)) {
-            fatRange = "Overfat"
-            color = 3 // Yellow
-        }
-        else if (fatMass >= 25) {
-            fatRange = "Obese"
-            color = 4 // Red
-        }
+            if (gender == 0) { // Male
+                if (fatMass < 9) {
+                    fatRange = "Underfat"
+                    color = 1 // Blue
+                }
+                else if ((fatMass >= 9) && (fatMass < 19)) {
+                    fatRange = "Healthy"
+                    color = 2 // Green
+                }
+                else if ((fatMass >= 19) && (fatMass < 25)) {
+                    fatRange = "Overfat"
+                    color = 3 // Yellow
+                }
+                else if (fatMass >= 25) {
+                    fatRange = "Obese"
+                    color = 4 // Red
+                }
+            }
+            else if (gender == 1) { // Female
+                if (fatMass < 21) {
+                    fatRange = "Underfat"
+                    color = 1 // Blue
+                }
+                else if ((fatMass >= 21) && (fatMass < 33)) {
+                    fatRange = "Healthy"
+                    color = 2 // Green
+                }
+                else if ((fatMass >= 33) && (fatMass < 39)) {
+                    fatRange = "Overfat"
+                    color = 3 // Yellow
+                }
+                else if (fatMass >= 39) {
+                    fatRange = "Obese"
+                    color = 4 // Red
+                }
+            }
+            Toast.makeText(ctx, "$fatRange", Toast.LENGTH_SHORT).show()
+        },
+    ) {
+        Text(text = "Calculate RFM")
     }
-    else if (gender == 1) { // Female
-        if (fatMass < 21) {
-            fatRange = "Underfat"
-            color = 1 // Blue
-        }
-        else if ((fatMass >= 21) && (fatMass < 33)) {
-            fatRange = "Healthy"
-            color = 2 // Green
-        }
-        else if ((fatMass >= 33) && (fatMass < 39)) {
-            fatRange = "Overfat"
-            color = 3 // Yellow
-        }
-        else if (fatMass >= 39) {
-            fatRange = "Obese"
-            color = 4 // Red
-        }
-    }
+    /*Scaffold() {
 
-}
-
-@Composable
-fun DisplayCard() {
-    Card {
-        calculateRFM()
-        Text(text = fatMass.toString())
-    }
+    }*/
 }
