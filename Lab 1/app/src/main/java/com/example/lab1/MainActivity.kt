@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
@@ -34,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.VerticalAlignmentLine
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -44,13 +49,14 @@ import androidx.compose.ui.unit.sp
 import com.example.lab1.ui.theme.Lab1Theme
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
+var fatRange = ""
+var color = 0
+var height = 0
+var waist = 0
+var gender = 0
+var fatMass = 0
+
 class MainActivity : ComponentActivity() {
-
-    /*object Gender {
-        const val male = "Male"
-        const val female = "Female"
-    }*/
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -72,13 +78,29 @@ class MainActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.height(20.dp))
                     TitleText()
                     Spacer(modifier = Modifier.height(50.dp))
-                    var height = SizeSlider(measurement = "Height")
+                    height = SizeSlider(measurement = "Height")
                     Spacer(modifier = Modifier.height(20.dp))
-                    var waist = SizeSlider(measurement = "Waist")
+                    waist = SizeSlider(measurement = "Waist")
                     Spacer(modifier = Modifier.height(20.dp))
-                    var gender = GenderSelect()
+                    gender = GenderSelect()
 
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            //count++
 
+                        }
+                    ) {
+                        Text(text = "Calculate RFM")
+                        DisplayCard()
+                    }
                 }
             }
         }
@@ -150,16 +172,56 @@ fun GenderSelect(): Int {
 }
 
 @Composable
-fun calculateRFM(height: Int, waist: Int, gender: Int) {
-    var fatMass = 0
-    var fatRange = ""
+fun calculateRFM() {
+    //var fatMass = 0
+    //var fatRange = ""
+    //var color = 0
 
     fatMass = (64 - (20 * (height / waist)) + (12 * gender))
 
-    if (gender == 0) {
-        if((0 <= fatMass) && (fatMass < 8)) {
+    if (gender == 0) { // Male
+        if (fatMass < 9) {
             fatRange = "Underfat"
+            color = 1 // Blue
         }
+        else if ((fatMass >= 9) && (fatMass < 19)) {
+            fatRange = "Healthy"
+            color = 2 // Green
+        }
+        else if ((fatMass >= 19) && (fatMass < 25)) {
+            fatRange = "Overfat"
+            color = 3 // Yellow
+        }
+        else if (fatMass >= 25) {
+            fatRange = "Obese"
+            color = 4 // Red
+        }
+    }
+    else if (gender == 1) { // Female
+        if (fatMass < 21) {
+            fatRange = "Underfat"
+            color = 1 // Blue
+        }
+        else if ((fatMass >= 21) && (fatMass < 33)) {
+            fatRange = "Healthy"
+            color = 2 // Green
+        }
+        else if ((fatMass >= 33) && (fatMass < 39)) {
+            fatRange = "Overfat"
+            color = 3 // Yellow
+        }
+        else if (fatMass >= 39) {
+            fatRange = "Obese"
+            color = 4 // Red
+        }
+    }
 
+}
+
+@Composable
+fun DisplayCard() {
+    Card {
+        calculateRFM()
+        Text(text = fatMass.toString())
     }
 }
